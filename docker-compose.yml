@@ -1,0 +1,13 @@
+# docker-compose.yml
+# 将来的にGradio（UI）用のサービスを追加する場合は、別サービスとして定義できますが、今はAPIだけでもOKです
+services:
+  api:
+    build:
+      context: .  # build.context をプロジェクトルートに設定
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8000:8000" # ホストの8000番をコンテナの8000番にマッピング
+    volumes:
+      - .:/app  # ホストのコードをコンテナにマウント（ホットリロード用）
+    # 開発用: Code変更をHot reload
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload # command に --reload を追加して開発用に設定
