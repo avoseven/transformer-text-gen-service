@@ -5,7 +5,8 @@ WORKDIR /app
 
 # System依存関係のInstall
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \    # 最低限必要なパッケージだけをインストールし、推奨パッケージはインストールしません
+    # 最低限必要なパッケージだけをインストールし、推奨パッケージはインストールしません
+    apt-get install -y --no-install-recommends \
     # git \
     gcc \
     && rm -rf /var/lib/apt/lists/*  # updateにより保存された不要Packagesを削除してImage sizeを小さくする
