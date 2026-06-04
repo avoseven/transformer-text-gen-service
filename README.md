@@ -4,11 +4,16 @@ Transformer decoderのService化
 
 ## 進捗
 - [x] setup (docker/Dockerfile, docker/requirements.txt, docker-compose.yml)
-- [ ] FastAPI Server動作確認
+- [x] FastAPI Server動作確認
     - [x] main.py (最小Sample)
-    - [ ] Docker composeで環境を起動
-    - [ ] http://localhost:8000 で"Hello World"が返ってくる
-    - [ ] http://localhost:8000/generate で固定のResponseが返ってくる
+    - [x] Docker composeで環境を起動
+    - [x] http://localhost:8000 で"Hello World"が返ってくる
+    - [x] http://localhost:8000/generate で固定のResponseが返ってくる
+- [ ] FastAPIにTransformerモデルを連携し、文章生成APIを完成させる
+    - [ ] 推論用のコードをコピー (モデル定義（TransformerDecoder など）, トークナイザ（AutoTokenizer）, モデル読み込み（from_pretrained または load_state_dict）, 生成関数（generate メソッド）)
+    - [ ] FastAPIの /generate エンドポイントから、前回のTransformerモデルを呼び出して文章生成を行う
+    - [ ] 生成結果をJSONで返す
+    - [ ] curl で動作確認し、「文章生成Web API」として完成させる
 
 
 ## memo

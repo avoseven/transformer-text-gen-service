@@ -1,12 +1,16 @@
 from fastapi import FastAPI # FastAPIのメインクラス。Webフレームワークそのもの
 from pydantic import BaseModel  # リクエスト・レスポンスの型（スキーマ）を定義するために使います
 # FastAPIは内部でpydanticに依存しているので、pip install fastapi でpydanticも一緒にインストールされます
+from app.generate import Generator
 
 app = FastAPI() # FastAPIインスタンスの作成
 # この app に対してルート（エンドポイント）を追加していきます
 
+generator = Generator() # Server起動時に一度だけ読み込む
+
 class GenerateRequest(BaseModel):   # POST /generate で受け取るデータの型を定義
     prompt: str
+    max_new_tokens: int = 50
     temperature: float = 1.0
     top_k: int = 50
 
@@ -34,7 +38,7 @@ pydanticを使うことで、FastAPIが自動的に：
 '''
 @app.get("/")
 def read_root():
-    return {"message": "Hello World"}
+    return {"message": "Hello World..."}
 
 '''
 ルート2：POST /generate
@@ -46,7 +50,11 @@ def read_root():
 @app.post("/generate", response_model=GenerateResponse)
 def generate_text(request: GenerateRequest):
     # 今は固定のレスポンスを返す（後でモデルを呼び出す）
-    generated_text = "これは生成された文章です（仮）"
+    #generated_text = "これは生成された文章です（仮）"
+    # ちゃんと生成させる
+    generated_text = generator.generate(
+        request.prompt, max_new_tokens=request.max_new_tokens, temperature=request.temperature, top_k=request.top_k
+    )
 
     return GenerateResponse(
         prompt=request.prompt,
