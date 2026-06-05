@@ -22,13 +22,16 @@ Transformer decoderのService化
         - `
         {"prompt":"私は","generated_text":"私はこの“男は別れる”とは? なぜ“女\"いい”をあらわれたことも、女友達と感じる。女が心行かれたりばり、仕事にくことから誘われていたら、なかなか私より友","temperature":1.0,"top_k":50}
         `
-- [ ] Gradio UIの実装
-    - [ ] app/main.py にGradio UIを追加する例
-    - [ ] Docker Compose のポート設定を追加
-    - [ ] 動作確認 (`docker compose up --build` で再起動, ブラウザで `http://localhost:7860` にアクセスしGradio UIを確認, プロンプトを入力して生成結果を確認)
+- [x] Gradio UIの実装
+    - [x] app/gradio.py でGradio UIを作成
+    - [x] Docker composeにServiceを追加
+    - [x] 動作確認 (`docker compose up --build` で再起動, ブラウザで `http://localhost:7860` にアクセスしGradio UIを確認, プロンプトを入力して生成結果を確認)
+- [ ] Dockerイメージのビルドとレジストリへのpush
 
 
 ## memo
+
+#### FastAPI
 - Root: 「どのURLにアクセスしたときに、どの処理を実行するか」を決めるもの
 - シリアライズ／デシリアライズ: データの形式を変換する処理
 - シリアライズ（serialize）：プログラム内のオブジェクト（Pythonのdictやクラスインスタンスなど）を、ネットワークで送れる形式（JSONなど）に変換すること
@@ -47,6 +50,18 @@ curl -X POST "http://localhost:8000/generate" \
 - `-d '{"prompt":"こんにちは"}'`：リクエストボディ（送るデータ）を指定, FastAPIはこれを GenerateRequest の prompt フィールドとして受け取ります
     - `-d '{"prompt":"こんにちは", "temperature": 0.5}'`とかもOK
 
+#### Gradio
+- `demo = gr.Interface()`: 「どんな入力を受け取って、どんな関数を実行し、どんな出力を表示するか」 を定義
+- `fn=gradio_generate`: 実行する関数
+- `inputs=[gr.Textbox(label="プロンプト", placeholder="文章の続きを入力してください"),...]`: 入力UI（テキストボックスやスライダーなど）
+- `outputs=gr.Textbox(label="生成結果")`: 出力UI（テキストボックスなど）
+- `title="Transformer文章生成モデル"`: ページタイトル
+- `description="プロンプトを入力すると、文章の続きを生成します。"`: ページの説明文
+- `demo.launch(server_name="0.0.0.0", server_port=7860, share=False)`: Gradioサーバの起動
+    - server_name="0.0.0.0"：すべてのIPアドレスからアクセス可能
+    - server_port=7860：ポート番号（http://localhost:7860）
+    - share=False：公開URLを作成しない（ローカルでのみアクセス可能）
+
 ## Error
 - `api-1  | ImportError: cannot import name 'JapaneseTokenizer' from 'data.tokenizer' (unknown location)`
     - importできない問題
@@ -55,3 +70,16 @@ curl -X POST "http://localhost:8000/generate" \
         - コンテナ内で `data/` や `utils/` をPythonパスから見えるようにする必要があります
         - docker-compose.yml の api サービスに環境変数を追加
         - これで、コンテナ内のPythonが /code と /code/app をパスに含めてくれます
+- ` ImportError: cannot import name 'HfFolder' from 'huggingface_hub' (/usr/local/lib/python3.10/site-packages/huggingface_hub/__init__.py)`
+    - Version互換性問題
+    - HfFolder クラスは huggingface_hub v1.0.x で削除された
+    - Gradioが古いバージョンの huggingface_hub に依存しているため、HfFolder を参照しようとしてエラーに
+    - requirements試行錯誤
+        - `gradio==3.50.2`, `huggingface_hub>=0.19.3,<2.0`: NG(gradio古いError)
+        - `gradio`, `huggingface_hub>=0.19.3,<2.0`: NG(HfFolderがないError)
+        - `gradio`, `huggingface_hub<1.0.0`: NG(Transformers==5.7.0に反する)
+        - `gradio`, `huggingface_hub<1.0.0`, `transformers==4.30.2`: NG(gradioとfastAPIとの互換性Error)
+        - `gradio==3.50.2`, `huggingface_hub<1.0.0`, `transformers==4.30.2`: NG(gradioとfastAPIとの互換性Error)
+        - Gradio 3.50.2は2023年ごろRelease, Pydantic 1系を前提に動いているらしい
+        - `huggingface_hub==0.19.4`, `pydantic==1.10.13`: OK(起動時Error出ず)
+        - 

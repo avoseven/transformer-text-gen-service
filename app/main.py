@@ -1,7 +1,7 @@
 from fastapi import FastAPI # FastAPIのメインクラス。Webフレームワークそのもの
 from pydantic import BaseModel  # リクエスト・レスポンスの型（スキーマ）を定義するために使います
 # FastAPIは内部でpydanticに依存しているので、pip install fastapi でpydanticも一緒にインストールされます
-from app.generate import Generator
+from generate import Generator
 
 app = FastAPI() # FastAPIインスタンスの作成
 # この app に対してルート（エンドポイント）を追加していきます
@@ -38,7 +38,7 @@ pydanticを使うことで、FastAPIが自動的に：
 '''
 @app.get("/")
 def read_root():
-    return {"message": "Hello World..."}
+    return {"message": "Transformer文章生成API"}
 
 '''
 ルート2：POST /generate
