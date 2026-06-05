@@ -16,3 +16,18 @@ services:
     
     # 開発用: Code変更をHot reload
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload # command に --reload を追加して開発用に設定
+
+  gradio:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - "7860:7860"
+    volumes:
+      - .:/code
+
+    working_dir: /code
+    environment:
+      - PYTHONPATH=/code/app
+
+    command: python app/gradio_ui.py
