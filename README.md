@@ -27,6 +27,15 @@ Transformer decoderのService化
     - [x] Docker composeにServiceを追加
     - [x] 動作確認 (`docker compose up --build` で再起動, ブラウザで `http://localhost:7860` にアクセスしGradio UIを確認, プロンプトを入力して生成結果を確認)
 - [ ] Dockerイメージのビルドとレジストリへのpush
+    - [x] (オマケ)Dockerfileの分割(FastAPI用とGradio用)，再構築，動作確認
+    - [ ] Docker ImageのBuild
+    - [ ] Docker HubへのPush
+
+- [ ] 余裕があれば
+    - [ ] 追加学習改善
+    - [ ] Dockerfileを分けたときに，Gradioの標準出力？が出なくなったものの分析
+        - 起動時の`api-1  | INFO:     Will watch for changes in these directories: ['/code']`系のやつがGradioだけ出なくなった
+        - `docker compose logs gradio`で何も出ない
 
 
 ## memo
@@ -61,6 +70,37 @@ curl -X POST "http://localhost:8000/generate" \
     - server_name="0.0.0.0"：すべてのIPアドレスからアクセス可能
     - server_port=7860：ポート番号（http://localhost:7860）
     - share=False：公開URLを作成しない（ローカルでのみアクセス可能）
+
+#### Docker ImageのPush
+- Registry: コンテナイメージを保存・共有する場所
+    - Docker Hub：Docker公式のパブリックレジストリ
+    - ECR（Elastic Container Registry）：AWSのプライベートレジストリ
+    - Dockerイメージをレジストリにpushしておけば、どこからでもpullできるようになります
+- SingularityでDocker Imageを利用する方法
+    1. Registry経由（推奨）
+        - どこからでもpullできる
+        - クラウドやHPC環境でも利用可能
+        - バージョン管理がしやすい
+    2. ローカル経由（可能だが非推奨）
+        - イメージの共有が面倒（tarファイルを転送する必要がある）
+        - クラウドやHPC環境での利用が不便
+        - バージョン管理がしづらい
+```bash
+# 1. Registry経由
+# Docker Hubの場合
+singularity pull docker://your-dockerhub-username/transformer-text-gen-service:latest
+
+# ECRの場合
+singularity pull docker://123456789012.dkr.ecr.ap-northeast-1.amazonaws.com/transformer-text-gen-service:latest
+```
+```bash
+# 2. Local経由
+# Dockerイメージをtarファイルに保存
+docker save transformer-text-gen-service:latest -o transformer-text-gen-service.tar
+
+# Singularityでtarファイルからイメージを作成
+singularity build transformer-text-gen-service.sif docker-archive://transformer-text-gen-service.tar
+```
 
 ## Error
 - `api-1  | ImportError: cannot import name 'JapaneseTokenizer' from 'data.tokenizer' (unknown location)`
